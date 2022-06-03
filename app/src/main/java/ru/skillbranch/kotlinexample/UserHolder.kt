@@ -22,8 +22,8 @@ object UserHolder {
         fullName: String,
         rawPhone: String,
     ): User {
-        val phone = rawPhone.replace("[^+\\d]".toRegex(), "")
-        if (phone.length != 12) throw IllegalArgumentException("Invalid phone number")
+        val phone = getFormattedLogin(rawPhone)
+        //if (phone.length != 12) throw IllegalArgumentException("Invalid phone number")
         if (map.containsKey(phone)) throw IllegalArgumentException("A user with this phone already exists")
         return User.makeUser(fullName, phone = phone)
             .also {
@@ -55,12 +55,23 @@ object UserHolder {
         val listOfUsers: MutableList<User> = ArrayList()
         list.forEach {
             val userStrArray = it.split(";")
+            val fullName = userStrArray[0]
+            val email: String? = when (userStrArray[1].isNotEmpty()) {
+                true -> userStrArray[1]
+                else -> null
+            }
+            val saltAndPasswordHash = userStrArray[2]
+            val phone: String? = when (userStrArray[3].isNotEmpty()) {
+                true -> userStrArray[3]
+                else -> null
+            }
+
             listOfUsers += User.makeUser(
-                userStrArray[0],
-                userStrArray[1],
-                userStrArray[2],
-                userStrArray[3]
-            )
+                fullName,
+                email,
+                saltAndPasswordHash,
+                phone
+            ).also { map[it.login] = it }
         }
         return listOfUsers
     }
@@ -76,7 +87,12 @@ object UserHolder {
 
     private fun getFormattedLogin(login: String): String {
         return when(isLoginPhoneNumber(login)) {
-            true -> login.replace("[^+\\d]".toRegex(), "")
+            true -> {
+                val formattedLogin = login.replace("[^+\\d]".toRegex(), "")
+                if (formattedLogin.length == 12 && formattedLogin.first() == '+') {
+                    formattedLogin
+                } else throw java.lang.IllegalArgumentException("Invalid phone number format")
+            }
             else -> login.lowercase().trim()
         }
     }

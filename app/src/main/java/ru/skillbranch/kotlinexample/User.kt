@@ -67,6 +67,18 @@ class User private constructor(
         sendAccessCodeToUser(rawPhone, code)
     }
 
+    //for csv
+    constructor(
+        firstName: String,
+        lastName: String?,
+        email: String?,
+        password: String,
+        phone: String?
+    ) : this(firstName, lastName, email, phone, meta = mapOf("src" to "csv")) {
+        salt = password.split(":")[0]
+        passwordHash = password.split(":")[1]
+    }
+
     init {
         println("First init block, primary constructor was called")
 
@@ -149,6 +161,7 @@ class User private constructor(
             val (firstName: String, lastName: String?) = fullName.fullNameToPair()
 
             return when {
+                password?.contains(':') == true -> User(firstName, lastName, email, password, phone)
                 !phone.isNullOrBlank() -> User(firstName, lastName, phone)
                 !email.isNullOrBlank() && !password.isNullOrBlank() -> User(firstName, lastName, email, password)
                 else -> throw IllegalArgumentException()
