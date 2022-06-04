@@ -91,7 +91,7 @@ object UserHolder {
                 val formattedLogin = login.replace("[^+\\d]".toRegex(), "")
                 if (formattedLogin.length == 12 && formattedLogin.first() == '+') {
                     formattedLogin
-                } else throw java.lang.IllegalArgumentException("Invalid phone number format")
+                } else throw java.lang.IllegalArgumentException("Enter a valid phone number starting with a + and containing 11 digits")
             }
             else -> login.lowercase().trim()
         }
